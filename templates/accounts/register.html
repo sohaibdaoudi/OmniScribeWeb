@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Register - OmniScribe{% endblock %}
+{% block content %}
+<div class="auth-layout">
+  <section class="auth-brand">
+    <div class="auth-brand-inner">
+      <div class="auth-logo">
+        <div class="auth-logo-mark">O</div>
+        <div>
+          <span class="auth-logo-name">OmniScribe</span>
+          <span class="auth-logo-tagline">Study intelligence</span>
+        </div>
+      </div>
+      <h2 class="auth-brand-title">Create a smarter study flow.</h2>
+      <p class="auth-brand-copy">
+        Organize lectures with AI-powered notes, flashcards, and quizzes that evolve with you.
+      </p>
+      <div class="auth-badges">
+        <span class="auth-badge">Structured Notes</span>
+        <span class="auth-badge">Quiz Ready</span>
+        <span class="auth-badge">Fast Recall</span>
+      </div>
+    </div>
+  </section>
+  <section class="auth-card">
+    <div class="auth-card-header">
+      <span class="auth-kicker">Get started</span>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">It only takes a minute to get set up.</p>
+    </div>
+    {% if form.non_field_errors %}
+    <div class="form-alert">
+      {% for error in form.non_field_errors %}
+      <div>{{ error }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" class="auth-form" data-auth="register">
+      {% csrf_token %}
+      <div class="auth-field {% if form.username.errors %}has-error{% endif %}">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+        <div class="field-error">
+          {% for error in form.username.errors %}
+          <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div class="validation-block">
+          <div class="validation-title">Username rules</div>
+          <ul class="validation-list" id="username-rules" data-validate="username" aria-live="polite" aria-hidden="true">
+            <li data-rule="length">Up to 150 characters</li>
+            <li data-rule="charset">Only letters, numbers, and @/./+/-/_</li>
+          </ul>
+        </div>
+      </div>
+      <div class="auth-field {% if form.email.errors %}has-error{% endif %}">
+        <label for="{{ form.email.id_for_label }}">Email (optional)</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+        <div class="field-error">
+          {% for error in form.email.errors %}
+          <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="auth-field {% if form.password1.errors %}has-error{% endif %}">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}
+        <div class="field-error">
+          {% for error in form.password1.errors %}
+          <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div class="validation-block">
+          <div class="validation-title">Password checklist</div>
+          <ul class="validation-list" id="password-rules" data-validate="password" aria-live="polite" aria-hidden="true">
+            <li data-rule="min-length">At least 8 characters</li>
+            <li data-rule="complexity">Mix letters and numbers</li>
+            <li data-rule="symbol">Include a symbol</li>
+            <li data-rule="non-numeric">Not all numbers</li>
+            <li data-rule="similarity">Does not include your name or email</li>
+          </ul>
+        </div>
+      </div>
+      <div class="auth-field {% if form.password2.errors %}has-error{% endif %}">
+        <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+        <div class="field-error">
+          {% for error in form.password2.errors %}
+          <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div class="validation-block">
+          <div class="validation-title">Confirmation</div>
+          <ul class="validation-list" id="confirm-rules" data-validate="confirm" aria-live="polite" aria-hidden="true">
+            <li data-rule="match">Passwords match</li>
+          </ul>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary auth-submit">Create account</button>
+    </form>
+    <p class="auth-switch">
+      Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a>
+    </p>
+  </section>
+</div>
+{% endblock %}

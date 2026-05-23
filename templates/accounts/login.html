@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Sign in - OmniScribe{% endblock %}
+{% block content %}
+<div class="auth-layout">
+  <section class="auth-brand">
+    <div class="auth-brand-inner">
+      <div class="auth-logo">
+        <div class="auth-logo-mark">O</div>
+        <div>
+          <span class="auth-logo-name">OmniScribe</span>
+          <span class="auth-logo-tagline">Study intelligence</span>
+        </div>
+      </div>
+      <h2 class="auth-brand-title">Your study workspace, refined.</h2>
+      <p class="auth-brand-copy">
+        Capture lectures, connect documents, and generate notes, flashcards, and quizzes in one place.
+      </p>
+      <div class="auth-badges">
+        <span class="auth-badge">Audio + Docs</span>
+        <span class="auth-badge">Smart Notes</span>
+        <span class="auth-badge">Instant Quizzes</span>
+      </div>
+    </div>
+  </section>
+  <section class="auth-card">
+    <div class="auth-card-header">
+      <span class="auth-kicker">Welcome back</span>
+      <h1 class="auth-title">Sign in</h1>
+      <p class="auth-subtitle">Pick up where you left off.</p>
+    </div>
+    {% if form.non_field_errors %}
+    <div class="form-alert">
+      {% for error in form.non_field_errors %}
+      <div>{{ error }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" class="auth-form" data-auth="login">
+      {% csrf_token %}
+      <div class="auth-field {% if form.username.errors %}has-error{% endif %}">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+        <div class="field-error">
+          {% for error in form.username.errors %}
+          <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="auth-field {% if form.password.errors %}has-error{% endif %}">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+        <div class="field-error">
+          {% for error in form.password.errors %}
+          <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary auth-submit">Sign in</button>
+    </form>
+    <p class="auth-switch">
+      No account yet? <a href="{% url 'accounts:register' %}">Create one</a>
+    </p>
+  </section>
+</div>
+{% endblock %}
