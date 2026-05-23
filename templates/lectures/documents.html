@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Documents — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>Documents</h1>
+    <p class="subtitle">select → link → upload</p>
+  </div>
+</header>
+<div class="page-content">
+  <form method="post" enctype="multipart/form-data" class="panel">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="upload">
+    <div class="topbar-actions" style="margin-bottom:16px;flex-wrap:wrap">
+      <select name="lecture_id" style="max-width:220px">
+        <option value="">No linked lecture</option>
+        {% for lecture in lectures %}
+        <option value="{{ lecture.id }}">{{ lecture.title }} — {{ lecture.course_title }}</option>
+        {% endfor %}
+      </select>
+      <div class="drop-zone compact" id="doc-batch-drop" style="flex:1;min-width:200px">
+        <h3>Select documents</h3>
+        <p>PDF, DOCX, images, text — multiple files supported</p>
+        <input type="file" name="document_files" id="document_files" multiple
+               accept=".pdf,.txt,.docx,.md,.png,.jpg,.jpeg,.bmp,.tiff" class="hidden">
+      </div>
+      <button type="submit" class="btn btn-primary">Upload Selected</button>
+    </div>
+    <ul class="attachment-list" id="doc-batch-list"></ul>
+  </form>
+
+  <form method="post" style="margin-bottom:16px">
+    {% csrf_token %}
+    <div class="topbar-actions">
+      <select name="lecture_id" style="max-width:220px">
+        <option value="">Select lecture</option>
+        {% for lecture in lectures %}
+        <option value="{{ lecture.id }}">{{ lecture.title }} — {{ lecture.course_title }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" name="action" value="correct_documents" class="btn btn-ghost">Correct documents</button>
+    </div>
+  </form>
+
+  <div class="grid-2">
+    <div class="panel" style="margin:0">
+      <div class="panel-header"><h2>library</h2></div>
+      <table class="data-table">
+        <thead><tr><th>File</th><th>Lecture</th><th>Course</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for doc in documents %}
+          <tr>
+            <td><a href="?doc_id={{ doc.id }}">{{ doc.original_filename }}</a></td>
+            <td>{% if doc.lecture_title %}<span class="chip-link">{{ doc.lecture_title }}</span>{% else %}—{% endif %}</td>
+            <td>{% if doc.course_title %}{{ doc.course_title }}{% else %}—{% endif %}</td>
+            <td>{{ doc.created_at }}</td>
+            <td>
+              <form method="post" style="display:inline" onsubmit="return confirm('Delete document?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="doc_id" value="{{ doc.id }}">
+                <button type="submit" class="btn btn-ghost">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="color:var(--text3)">No documents uploaded.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="panel" style="margin:0">
+      <div class="panel-header"><h2>document preview</h2></div>
+      <div class="markdown-output">{% if preview_text %}{{ preview_text }}{% else %}Select a document to preview extracted text.{% endif %}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script>OmniScribe.initMultiFileDrop('doc-batch-drop','document_files','doc-batch-list');</script>{% endblock %}

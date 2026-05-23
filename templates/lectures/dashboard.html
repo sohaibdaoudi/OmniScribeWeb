@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="subtitle">Overview & analytics</p>
+  </div>
+  <div class="topbar-actions">
+    <a href="{% url 'lectures:audio' %}" class="btn btn-primary">Upload lecture</a>
+  </div>
+</header>
+<div class="page-content">
+  <div class="grid-2">
+    <div class="card">
+      <div class="panel-header"><h2>Courses</h2></div>
+      <div style="font-size:28px;font-weight:700">{{ stats.total_courses }}</div>
+      <div style="color:var(--text3)">Total courses</div>
+    </div>
+    <div class="card">
+      <div class="panel-header"><h2>Lectures</h2></div>
+      <div style="font-size:28px;font-weight:700">{{ stats.total_lectures }}</div>
+      <div style="color:var(--text3)">Total lectures</div>
+    </div>
+    <div class="card">
+      <div class="panel-header"><h2>Audio</h2></div>
+      <div style="font-size:28px;font-weight:700">{{ stats.total_audios }}</div>
+      <div style="color:var(--text3)">Uploaded files</div>
+    </div>
+    <div class="card">
+      <div class="panel-header"><h2>Documents</h2></div>
+      <div style="font-size:28px;font-weight:700">{{ stats.total_documents }}</div>
+      <div style="color:var(--text3)">Processed docs</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h2>Your courses</h2></div>
+    {% if courses %}
+    <table class="data-table">
+      <thead><tr><th>Course</th><th>Lectures</th><th>Created</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for course in courses %}
+        <tr>
+          <td><a href="{% url 'lectures:course_detail' course.id %}">{{ course.title }}</a></td>
+          <td>{{ course.lecture_count }}</td>
+          <td>{{ course.created_at }}</td>
+          <td>
+            <div class="table-actions">
+              <button type="button"
+                      class="btn btn-ghost"
+                      data-rename="course"
+                      data-rename-id="{{ course.id }}"
+                      data-rename-title="{{ course.title }}">
+                Rename
+              </button>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_course">
+                <input type="hidden" name="course_id" value="{{ course.id }}">
+                <button type="submit" class="btn btn-ghost">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text3)">No courses yet. Upload your first lecture to get started.</p>
+    {% endif %}
+  </div>
+  <div class="panel">
+    <div class="panel-header"><h2>Recent lectures</h2></div>
+    {% if lectures %}
+    <table class="data-table">
+      <thead><tr><th>Lecture</th><th>Course</th><th>Transcript</th><th>Created</th></tr></thead>
+      <tbody>
+        {% for lecture in lectures %}
+        <tr>
+          <td><a href="{% url 'lectures:audio' %}?tab=transcripts&lecture_id={{ lecture.id }}">{{ lecture.title }}</a></td>
+          <td>{{ lecture.course_title }}</td>
+          <td>{% if lecture.has_transcript %}<span class="chip-live">ready</span>{% else %}—{% endif %}</td>
+          <td>{{ lecture.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text3)">No lectures yet. <a href="{% url 'lectures:audio' %}">Upload your first lecture</a>.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

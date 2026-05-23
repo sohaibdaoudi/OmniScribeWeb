@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>{{ course.title }}</h1>
+    <p class="subtitle">Course overview & lectures</p>
+  </div>
+  <div class="topbar-actions">
+    <button type="button"
+            class="btn btn-ghost"
+            data-rename="course"
+            data-rename-id="{{ course.id }}"
+            data-rename-title="{{ course.title }}">
+      Rename course
+    </button>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete_course">
+      <button type="submit" class="btn btn-ghost">Delete course</button>
+    </form>
+  </div>
+</header>
+<div class="page-content">
+  <div class="panel">
+    <div class="panel-header"><h2>Lectures</h2></div>
+    {% if lectures %}
+    <table class="data-table">
+      <thead><tr><th>Lecture</th><th>Transcript</th><th>Created</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for lecture in lectures %}
+        <tr>
+          <td><a href="{% url 'lectures:audio' %}?tab=transcripts&lecture_id={{ lecture.id }}">{{ lecture.title }}</a></td>
+          <td>{% if lecture.has_transcript %}<span class="chip-live">ready</span>{% else %}—{% endif %}</td>
+          <td>{{ lecture.created_at }}</td>
+          <td>
+            <div class="table-actions">
+              <button type="button"
+                      class="btn btn-ghost"
+                      data-rename="lecture"
+                      data-rename-id="{{ lecture.id }}"
+                      data-rename-title="{{ lecture.title }}">
+                Rename
+              </button>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_lecture">
+                <input type="hidden" name="lecture_id" value="{{ lecture.id }}">
+                <button type="submit" class="btn btn-ghost">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:var(--text3)">No lectures yet. Upload a lecture to get started.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

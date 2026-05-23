@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Quiz — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>Quizzes</h1>
+    <p class="subtitle">AI practice questions + answer key</p>
+  </div>
+  <form method="post" class="topbar-actions">
+    {% csrf_token %}
+    <select name="lecture_id" required {% if not lectures %}disabled{% endif %}>
+      {% for lecture in lectures %}
+      <option value="{{ lecture.id }}" {% if lecture.id == selected_lecture_id %}selected{% endif %}>{{ lecture.title }} — {{ lecture.course_title }}</option>
+      {% empty %}
+      <option value="">No transcribed lectures</option>
+      {% endfor %}
+    </select>
+    <select name="num_questions">
+      <option value="5" {% if num_questions == 5 %}selected{% endif %}>5 questions</option>
+      <option value="10" {% if num_questions == 10 %}selected{% endif %}>10 questions</option>
+      <option value="15" {% if num_questions == 15 %}selected{% endif %}>15 questions</option>
+    </select>
+    <select name="difficulty">
+      <option value="mixed" {% if difficulty == 'mixed' %}selected{% endif %}>Mixed</option>
+      <option value="easy" {% if difficulty == 'easy' %}selected{% endif %}>Easy</option>
+      <option value="medium" {% if difficulty == 'medium' %}selected{% endif %}>Medium</option>
+      <option value="hard" {% if difficulty == 'hard' %}selected{% endif %}>Hard</option>
+    </select>
+    <input type="text" name="focus" value="{{ focus }}" placeholder="Focus topic" style="max-width:140px">
+    <button type="submit" name="action" value="load" class="btn btn-ghost" {% if not lectures %}disabled{% endif %}>Load Latest</button>
+    <button type="submit" name="action" value="generate" class="btn btn-primary" {% if not lectures %}disabled{% endif %}>Generate Quiz</button>
+  </form>
+</header>
+<div class="page-content">
+  {% if not lectures %}
+  <p style="color:var(--text3)">Transcribe a lecture on the <a href="{% url 'lectures:audio' %}">Upload</a> page first.</p>
+  {% endif %}
+  <div id="quiz-container">
+    {% if quiz_items %}
+      {% if selected_lecture_id %}
+      <div style="margin-bottom:16px;padding:12px;background:var(--bg2);border-radius:4px;display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--text2)">Study while practicing</span>
+        <a href="{% url 'lectures:notes' %}?lecture_id={{ selected_lecture_id }}" class="btn btn-ghost">Review notes</a>
+      </div>
+      {% endif %}
+      {% for item in quiz_items %}
+      <div class="quiz-card" data-answer="{{ item.answer|default:'' }}" data-explanation="{{ item.explanation|default:'' }}">
+        <h3>{{ item.number }}. {{ item.question }}</h3>
+        <label class="quiz-option"><input type="radio" name="q{{ item.number }}" value="A"> A. {{ item.options.A }}</label>
+        <label class="quiz-option"><input type="radio" name="q{{ item.number }}" value="B"> B. {{ item.options.B }}</label>
+        <label class="quiz-option"><input type="radio" name="q{{ item.number }}" value="C"> C. {{ item.options.C }}</label>
+        <label class="quiz-option"><input type="radio" name="q{{ item.number }}" value="D"> D. {{ item.options.D }}</label>
+        <div class="quiz-result" id="result-{{ item.number }}"></div>
+      </div>
+      {% endfor %}
+      <button type="button" class="btn btn-primary" id="quiz-submit-btn">Submit answers</button>
+      <p id="quiz-score" style="font-family:var(--font-mono);color:var(--text3);margin-top:12px"></p>
+    {% elif content %}
+    <div class="panel">
+      <div class="panel-header"><h2>quiz markdown</h2></div>
+      <div class="markdown-output">{{ content }}</div>
+    </div>
+    {% else %}
+    <p style="color:var(--text3)">No quiz loaded. Generate one to begin.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script>OmniScribe.initQuiz();</script>{% endblock %}

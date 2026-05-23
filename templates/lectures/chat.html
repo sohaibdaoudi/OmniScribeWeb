@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}AI Chat — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>AI Chat</h1>
+    <p class="subtitle">RAG study assistant</p>
+  </div>
+  <form method="post" style="display:inline">
+    {% csrf_token %}
+    <button type="submit" name="action" value="clear" class="btn btn-ghost">Clear chat</button>
+  </form>
+</header>
+<div class="page-content">
+  <div class="panel">
+    <div class="chat-thread" id="chat-thread">
+      {% for msg in chat_messages %}
+      <div class="chat-bubble {{ msg.role }}">{{ msg.text }}</div>
+      {% empty %}
+      <p style="color:var(--text3);align-self:center">Ask questions about your lectures and documents.</p>
+      {% endfor %}
+    </div>
+    <form method="post" class="chat-input-bar">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="send">
+      <select name="lecture_id" style="max-width:180px;flex-shrink:0">
+        <option value="">All sessions</option>
+        {% for lecture in lectures %}
+        <option value="{{ lecture.id }}" {% if lecture.id == selected_lecture_id %}selected{% endif %}>{{ lecture.title }}</option>
+        {% endfor %}
+      </select>
+      <textarea name="question" rows="2" placeholder="Ask about your indexed content…" required></textarea>
+      <button type="submit" class="btn btn-primary btn-send">➤</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

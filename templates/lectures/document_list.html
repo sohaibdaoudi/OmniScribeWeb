@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Documents — OmniScribe{% endblock %}
+{% block content %}
+<h1>Documents</h1>
+<p><a href="{% url 'lectures:document_upload' %}" class="btn">Upload document</a></p>
+<div class="card">
+  {% if documents %}
+  <table>
+    <thead><tr><th>File</th><th>Lecture</th><th>Created</th></tr></thead>
+    <tbody>
+      {% for doc in documents %}
+      <tr>
+        <td>{{ doc.original_filename }}</td>
+        <td>{{ doc.audio_title|default:"—" }}</td>
+        <td>{{ doc.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No documents yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

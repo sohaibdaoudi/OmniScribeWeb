@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ audio.title }} — OmniScribe{% endblock %}
+{% block content %}
+<h1>{{ audio.title }}</h1>
+<p class="muted">{{ audio.original_filename }} · {{ audio.created_at }}</p>
+
+{% if transcript %}
+<div class="card">
+  <h2>Corrected transcript</h2>
+  <div class="markdown-output">{{ transcript.corrected_text }}</div>
+</div>
+{% else %}
+<p class="muted">No transcript yet.</p>
+{% endif %}
+
+<div class="card">
+  <h2>Linked documents</h2>
+  {% if documents %}
+  <ul>
+    {% for doc in documents %}
+    <li>{{ doc.original_filename }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No documents linked to this lecture.</p>
+  {% endif %}
+</div>
+{% endblock %}

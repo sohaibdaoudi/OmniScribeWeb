@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Upload document — OmniScribe{% endblock %}
+{% block content %}
+<h1>Upload document</h1>
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-row">
+      <label for="audio_id">Link to lecture (optional)</label>
+      <select id="audio_id" name="audio_id">
+        <option value="">— None —</option>
+        {% for audio in audios %}
+        <option value="{{ audio.id }}">{{ audio.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="document_file">Document (PDF, DOCX, images, text)</label>
+      <input type="file" id="document_file" name="document_file" required>
+    </div>
+    <p class="muted">Extraction uses PyPDF/DOCX with EasyOCR fallback on CPU for scanned PDFs and images.</p>
+    <button type="submit" class="btn">Process document</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Upload audio — OmniScribe{% endblock %}
+{% block content %}
+<h1>Upload & transcribe audio</h1>
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-row">
+      <label for="title">Title (optional)</label>
+      <input type="text" id="title" name="title" placeholder="Lecture title">
+    </div>
+    <div class="form-row">
+      <label for="audio_file">Audio file</label>
+      <input type="file" id="audio_file" name="audio_file" accept="audio/*" required>
+    </div>
+    <p class="muted">Pipeline: upload → Groq Whisper → transcript correction → RAG index (CPU embeddings).</p>
+    <button type="submit" class="btn">Transcribe</button>
+  </form>
+</div>
+{% endblock %}

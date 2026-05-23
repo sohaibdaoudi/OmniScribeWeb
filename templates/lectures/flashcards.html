@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Flashcards — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>Flashcards</h1>
+    <p class="subtitle">AI-generated study cards</p>
+  </div>
+  <form method="post" class="topbar-actions">
+    {% csrf_token %}
+    <select name="lecture_id" required {% if not lectures %}disabled{% endif %}>
+      {% for lecture in lectures %}
+      <option value="{{ lecture.id }}" {% if lecture.id == selected_lecture_id %}selected{% endif %}>{{ lecture.title }} — {{ lecture.course_title }}</option>
+      {% empty %}
+      <option value="">No transcribed lectures</option>
+      {% endfor %}
+    </select>
+    <input type="number" name="count" value="{{ count }}" min="4" max="40" style="max-width:90px">
+    <input type="text" name="focus" value="{{ focus }}" placeholder="Focus topic" style="max-width:160px">
+    <button type="submit" name="action" value="load" class="btn btn-ghost" {% if not lectures %}disabled{% endif %}>Load Saved</button>
+    <button type="submit" name="action" value="generate" class="btn btn-primary" {% if not lectures %}disabled{% endif %}>Generate</button>
+  </form>
+</header>
+<div class="page-content">
+  {% if not lectures %}
+  <p style="color:var(--text3)">Transcribe a lecture on the <a href="{% url 'lectures:audio' %}">Upload</a> page first.</p>
+  {% endif %}
+  {% if cards %}
+  <p style="color:var(--text3);margin-top:0">Click a card to flip between front and back.</p>
+  <div class="flashcard-grid">
+    {% for card in cards %}
+    <div class="flashcard">
+      <div class="front">
+        <div class="label">Front</div>
+        <div>{{ card.front }}</div>
+      </div>
+      <div class="back">
+        <div class="label">Back</div>
+        <div>{{ card.back }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--text3)">No flashcards loaded. Generate a new set to begin.</p>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>OmniScribe.initFlashcards();</script>
+{% endblock %}

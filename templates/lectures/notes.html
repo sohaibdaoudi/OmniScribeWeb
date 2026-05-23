@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load markdown_filters %}
+{% block title %}Notes — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>Generated Notes</h1>
+    <p class="subtitle">AI-structured study notes</p>
+  </div>
+  <form method="post" class="topbar-actions">
+    {% csrf_token %}
+    <select name="lecture_id" required {% if not lectures %}disabled{% endif %}>
+      {% for lecture in lectures %}
+      <option value="{{ lecture.id }}" {% if lecture.id == selected_lecture_id %}selected{% endif %}>{{ lecture.title }} — {{ lecture.course_title }}</option>
+      {% empty %}
+      <option value="">No transcribed lectures</option>
+      {% endfor %}
+    </select>
+    <select name="mode">
+      {% for value, label in modes %}
+      <option value="{{ value }}" {% if value == mode %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" name="action" value="load" class="btn btn-ghost" {% if not lectures %}disabled{% endif %}>Load Latest</button>
+    <button type="submit" name="action" value="generate" class="btn btn-primary" {% if not lectures %}disabled{% endif %}>Generate Notes</button>
+  </form>
+</header>
+<div class="page-content">
+  {% if not lectures %}
+  <p style="color:var(--text3)">Transcribe a lecture on the <a href="{% url 'lectures:audio' %}">Upload</a> page first.</p>
+  {% endif %}
+  <div class="panel">
+    <div class="panel-header">
+      <h2>notes</h2>
+      <span class="chip-live">generated</span>
+    </div>
+    {% if content %}
+    <div class="markdown-output">{{ content|markdown_to_html }}</div>
+    {% if selected_lecture_id %}
+    <div style="display:flex;gap:8px;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+      <a href="{% url 'lectures:flashcards' %}?lecture_id={{ selected_lecture_id }}" class="btn btn-primary">Practice with Flashcards</a>
+      <a href="{% url 'lectures:quiz' %}?lecture_id={{ selected_lecture_id }}" class="btn btn-primary">Take Quiz</a>
+    </div>
+    {% endif %}
+    {% else %}
+    <p style="color:var(--text3)">No notes loaded. Select a lecture and generate or load latest.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

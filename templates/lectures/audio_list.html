@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Audio — OmniScribe{% endblock %}
+{% block content %}
+<h1>Audio lectures</h1>
+<p><a href="{% url 'lectures:audio_upload' %}" class="btn">Upload audio</a></p>
+<div class="card">
+  {% if audios %}
+  <table>
+    <thead><tr><th>Title</th><th>File</th><th>Created</th></tr></thead>
+    <tbody>
+      {% for audio in audios %}
+      <tr>
+        <td><a href="{% url 'lectures:audio_detail' audio.id %}">{{ audio.title }}</a></td>
+        <td>{{ audio.original_filename }}</td>
+        <td>{{ audio.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No audio uploaded yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

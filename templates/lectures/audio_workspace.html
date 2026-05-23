@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Upload & Transcripts — OmniScribe{% endblock %}
+{% block main %}
+<header class="topbar">
+  <div>
+    <h1>Upload & Transcripts</h1>
+    <p class="subtitle">upload → transcribe → review</p>
+  </div>
+  <div class="topbar-actions">
+    <a href="{% url 'lectures:audio' %}?tab=upload" class="btn btn-ghost">Refresh</a>
+  </div>
+</header>
+<nav class="subtab-bar" id="audio-subtabs">
+  <a href="?tab=upload" class="subtab {% if tab == 'upload' %}active{% endif %}" data-tab="upload">Upload</a>
+  <a href="?tab=record" class="subtab {% if tab == 'record' %}active{% endif %}" data-tab="record">Record</a>
+  <a href="?tab=transcripts" class="subtab {% if tab == 'transcripts' %}active{% endif %}" data-tab="transcripts">Transcripts</a>
+</nav>
+<div class="page-content">
+  <div id="panel-upload" class="tab-panel {% if tab == 'upload' %}active{% endif %}">
+    <form method="post" enctype="multipart/form-data" id="audio-upload-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="transcribe">
+      <div class="drop-zone" id="audio-drop-zone">
+        <h3>Drop your audio file here</h3>
+        <p>or click to browse — mp3, wav, m4a, flac, ogg, aac</p>
+        <input type="file" name="audio_file" id="audio_file" accept="audio/*" class="hidden" required>
+      </div>
+      <ul class="attachment-list" id="audio-attachment-list"></ul>
+      <div class="form-row" style="margin-top:16px">
+        <label for="course_id">Course</label>
+        <select id="course_id" name="course_id" onchange="handleCourseSelection(this)">
+          <option value="">Create new course</option>
+          {% for course in courses %}
+          <option value="{{ course.id }}">{{ course.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row" id="course_title_row" style="display:none">
+        <label for="course_title">New course title</label>
+        <input type="text" id="course_title" name="course_title" placeholder="Untitled course (auto if blank)">
+      </div>
+      <div class="form-row">
+        <label for="lecture_title">Lecture Title</label>
+        <input type="text" id="lecture_title" name="lecture_title" placeholder="Defaults to the audio filename">
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <div class="panel-header"><h2>Attach supporting documents (optional)</h2></div>
+        <div class="drop-zone compact" id="docs-drop-zone">
+          <h3>Attach slides, PDFs, notes</h3>
+          <p>Will be linked to this audio session</p>
+          <input type="file" name="document_files" id="document_files" multiple
+                 accept=".pdf,.txt,.docx,.md,.png,.jpg,.jpeg,.bmp,.tiff" class="hidden">
+        </div>
+        <ul class="attachment-list" id="docs-attachment-list"></ul>
+      </div>
+      <div class="progress-bar" id="pipeline-progress">
+        <span id="spinner">◐</span>
+        <span id="stage-label">Preparing…</span>
+        <span id="stage-time">0.0s</span>
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top:16px" id="transcribe-btn">Transcribe</button>
+    </form>
+  </div>
+
+  <div id="panel-record" class="tab-panel {% if tab == 'record' %}active{% endif %}">
+    <form method="post" enctype="multipart/form-data" id="record-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="transcribe_recording">
+      <div class="panel">
+        <div class="panel-header"><h2>Record lecture</h2><span class="chip-live">mic</span></div>
+        <p style="color:var(--text3);margin:0 0 12px">Record in-browser, then transcribe with the same pipeline as desktop.</p>
+        <div class="form-row">
+          <label for="record_course_id">Course</label>
+          <select id="record_course_id" name="course_id" onchange="handleCourseSelection(this, 'record')">
+            <option value="">Create new course</option>
+            {% for course in courses %}
+            <option value="{{ course.id }}">{{ course.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-row" id="record_course_title_row" style="display:none">
+          <label for="record_course_title">New course title</label>
+          <input type="text" id="record_course_title" name="course_title" placeholder="Untitled course (auto if blank)">
+        </div>
+        <div class="form-row">
+          <label for="record_title">Title</label>
+          <input type="text" id="record_title" name="record_title" placeholder="Recorded lecture title">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button type="button" class="btn btn-primary" id="record-start">Start recording</button>
+          <button type="button" class="btn btn-ghost" id="record-stop" disabled>Stop</button>
+        </div>
+        <p id="record-status" style="font-family:var(--font-mono);font-size:12px;color:var(--accent2)">Ready</p>
+        <audio id="record-preview" controls class="hidden" style="width:100%;margin-top:12px"></audio>
+        <input type="file" name="recorded_audio" id="recorded_audio" class="hidden" accept="audio/*">
+      </div>
+      <button type="submit" class="btn btn-primary" id="transcribe-recording-btn" disabled>Transcribe recording</button>
+    </form>
+  </div>
+
+  <div id="panel-transcripts" class="tab-panel {% if tab == 'transcripts' %}active{% endif %}">
+    <div class="form-row">
+      <label for="transcript_audio_select">Select lecture</label>
+      <select id="transcript_audio_select" onchange="location.href='?tab=transcripts&lecture_id='+this.value">
+        <option value="">— Choose —</option>
+        {% for lecture in transcript_lectures %}
+        <option value="{{ lecture.id }}" {% if lecture.id == selected_lecture_id %}selected{% endif %}>{{ lecture.title }} — {{ lecture.course_title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if selected_audio_id %}
+    <div class="form-row">
+      <audio controls style="width:100%" src="{% url 'lectures:audio_stream' selected_audio_id %}"></audio>
+    </div>
+    <div class="split-panels">
+      <div class="panel">
+        <div class="panel-header"><h2>raw transcript</h2></div>
+        <div class="markdown-output">{% if raw_transcript %}{{ raw_transcript }}{% else %}No transcript available yet.{% endif %}</div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h2>corrected transcript</h2></div>
+        <div class="markdown-output">{% if corrected_transcript %}{{ corrected_transcript }}{% else %}No corrected transcript available yet.{% endif %}</div>
+      </div>
+    </div>
+    <p style="color:var(--text3);text-align:center;margin:16px 0 8px">
+      If you want to correct the script, click the 'Correct Transcript' button.
+    </p>
+    <form method="post" style="display:flex;justify-content:center;margin-bottom:12px">
+      {% csrf_token %}
+      <input type="hidden" name="lecture_id" value="{{ selected_lecture_id }}">
+      <button type="submit" name="action" value="correct_transcript" class="btn btn-ghost">Correct transcript</button>
+    </form>
+    {% if linked_documents %}
+    <div class="panel">
+      <div class="panel-header"><h2>linked documents</h2></div>
+      <ul class="attachment-list">
+        {% for doc in linked_documents %}
+        <li>{{ doc.original_filename }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% elif not transcript_lectures %}
+    <p style="color:var(--text3)">No transcripts yet. Upload or record a lecture first.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  OmniScribe.initAudioPage();
+</script>
+{% endblock %}
