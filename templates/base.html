@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}OmniScribe{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% if user.is_authenticated %}app-body{% else %}auth-body{% endif %}">
+{% if user.is_authenticated %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <a href="{% url 'lectures:dashboard' %}" class="logo" style="color:var(--text);text-decoration:none">OmniScribe</a>
+      <div class="tagline">Study intelligence</div>
+    </div>
+    <div class="sidebar-section">Workspace</div>
+    <nav>
+      <a href="{% url 'lectures:dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <span class="icon">⌂</span><span class="label">Home</span>
+      </a>
+      <a href="{% url 'lectures:audio' %}" class="nav-item {% if 'audio' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="icon">♪</span><span class="label">Upload</span>
+      </a>
+      <a href="{% url 'lectures:documents' %}" class="nav-item {% if 'document' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="icon">🗎</span><span class="label">Documents</span>
+      </a>
+      <a href="{% url 'lectures:notes' %}" class="nav-item {% if request.resolver_match.url_name == 'notes' %}active{% endif %}">
+        <span class="icon">✎</span><span class="label">Notes</span>
+      </a>
+      <a href="{% url 'lectures:flashcards' %}" class="nav-item {% if request.resolver_match.url_name == 'flashcards' %}active{% endif %}">
+        <span class="icon">▣</span><span class="label">Flashcards</span>
+      </a>
+      <a href="{% url 'lectures:quiz' %}" class="nav-item {% if request.resolver_match.url_name == 'quiz' %}active{% endif %}">
+        <span class="icon">✎𓂃</span><span class="label">Quiz</span>
+      </a>
+      <a href="{% url 'lectures:chat' %}" class="nav-item {% if request.resolver_match.url_name == 'chat' %}active{% endif %}">
+        <span class="icon">🗫</span><span class="label">AI Chat</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="api-status-pill" class="status-pill loading">
+        <span>●</span>
+        <span class="text" id="api-status-text">Connecting…</span>
+      </div>
+      <form method="post" action="{% url 'accounts:logout' %}" style="margin-top:10px">
+        {% csrf_token %}
+        <button type="submit" class="link-button">Sign out ({{ user.username }})</button>
+      </form>
+    </div>
+  </aside>
+  <div class="main-area">
+    {% if messages %}
+    <div style="padding:12px 24px 0">
+      <ul class="messages">
+        {% for message in messages %}
+        <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% block main %}{% endblock %}
+  </div>
+</div>
+<!-- Floating AI Chat Assistant -->
+<div id="floating-chat-drawer" class="floating-chat-drawer" style="display:none">
+  <div class="floating-chat-header">
+    <h3>AI Assistant</h3>
+    <button type="button" class="close-btn" id="close-chat" aria-label="Close chat">×</button>
+  </div>
+  <div class="floating-chat-body" id="floating-chat-body">
+    <p style="color:var(--text3);text-align:center;padding:12px">Ask questions about your lectures and documents.</p>
+  </div>
+  <form id="floating-chat-form" style="border-top:1px solid var(--border);padding:12px;display:flex;gap:8px">
+    {% csrf_token %}
+    <input type="hidden" name="lecture_id" id="floating-chat-lecture-id">
+    <input type="text" id="floating-chat-input" name="message" placeholder="Ask a question..." style="flex:1">
+    <button type="submit" class="btn btn-sm btn-primary">Send</button>
+  </form>
+</div>
+<button type="button" class="floating-chat-btn" id="open-chat-btn" aria-label="Open AI assistant">AI</button>
+<div id="rename-modal" class="modal hidden" aria-hidden="true">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="rename-modal-title">Rename</h3>
+      <button type="button" class="close-btn" id="rename-modal-close" aria-label="Close">×</button>
+    </div>
+    <form id="rename-modal-form" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" id="rename-modal-action">
+      <input type="hidden" name="course_id" id="rename-modal-course-id">
+      <input type="hidden" name="lecture_id" id="rename-modal-lecture-id">
+      <input type="text" name="title" id="rename-modal-input" placeholder="Enter new name" required>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="rename-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% else %}
+<main class="page-content auth-wrap">
+  <div class="auth-frame">
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li class="message {{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+{% endif %}
+<script src="/static/js/app.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
